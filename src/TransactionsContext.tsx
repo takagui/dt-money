@@ -26,7 +26,7 @@ type TTransactionInput = Pick<
 
 interface ITransactionsContextData {
   transactions: ITransaction[];
-  createTransaction: ( transaction: TTransactionInput ) => void;
+  createTransaction: ( transaction: TTransactionInput ) => Promise<void>;
 }
 interface ITransactionProviderProps {
   children: ReactNode;
@@ -44,8 +44,18 @@ export function TransactionsProvider({ children }: ITransactionProviderProps) {
       .then(response => setTransactions(response.data.transactions));
   }, []);
 
-  function createTransaction(transaction: TTransactionInput) {
-    api.post('/transactions', transaction);
+  async function createTransaction(transactionInput: TTransactionInput) {
+    const response = await api.post('/transactions', {
+      ...transactionInput,
+      createdAt: new Date(),
+    });
+
+    const { transaction } = response.data;
+
+    setTransactions([
+      ...transactions,
+      transaction
+    ]);
   }
 
   return (
